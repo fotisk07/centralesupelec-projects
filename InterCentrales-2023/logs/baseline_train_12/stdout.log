@@ -1,0 +1,6 @@
+2023-04-02 16:15:36,471 : [TRACKER] Starting experiment...
+
+2023-04-02 16:15:36,479 : [INFO] Starting training.
+2023-04-02 16:15:40,934 : [INFO] torch.Size([1, 1, 256, 256])
+
+2023-04-02 16:15:41,517 : [TRACKER] Experiment has concluded !

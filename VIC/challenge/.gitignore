@@ -1,0 +1,7 @@
+data/*
+!data/download.sh
+*.pkl
+__pycache__
+report/*
+!report/main.tex
+!report/main.pdf

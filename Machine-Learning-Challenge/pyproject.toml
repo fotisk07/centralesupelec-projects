@@ -1,0 +1,35 @@
+[project]
+name = "ml"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Fotis", email = "fotiskapotos@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "pytest>=9.0.2",
+    "scikit-learn>=1.7.2",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+    "xgboost>=3.1.2",
+]
+
+[project.scripts]
+ml = "ml:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "ruff>=0.14.10",
+]
+
+[tool.ruff.lint]
+ignore = ["TRY003", "EM102","PERF203","D100","INP001","D103","N806","N803","T201","ANN201","ANN001","FBT001","B007","PLR0913","D101"]

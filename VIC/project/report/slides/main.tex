@@ -1,0 +1,337 @@
+% slides.tex — Beamer slides for your report
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\title[Classical Face Recognition]{Classical Face Recognition Under Real-World Variations}
+\author{Ayoub EL KBADI \and Fotios KAPOTOS \and Jean-Vincent MARTINI}
+\institute{CentraleSupélec}
+\date{\today}
+
+\begin{document}
+
+% ------------------ Title ------------------
+\begin{frame} 
+  \titlepage
+\end{frame}
+
+% ------------------ Motivation ------------------
+\begin{frame}{Motivation}
+\begin{itemize}
+  \item Face recognition predates deep learning: explicit features + linear modeling.
+  \item Classical methods remain relevant for:
+  \begin{itemize}
+    \item interpretability and analyzable failure modes,
+    \item low compute / embedded settings,
+    \item limited training data regimes.
+  \end{itemize}
+  \item Goal: compare global vs local representations under real-world degradations.
+\end{itemize}
+\end{frame}
+
+% ------------------ Problem Definition ------------------
+\begin{frame}{Problem Definition}
+Dataset \(\mathcal{D}=\{(x_i,y_i)\}_{i=1}^N\), \(x_i\in\mathbb{R}^{H\times W}\), \(y_i\in\{1,\dots,C\}\).
+
+\medskip
+Learn a classifier \(f:\mathbb{R}^{H\times W}\to\{1,\dots,C\}\).
+
+\medskip
+Robustness via degradations \(\delta_\alpha(\cdot)\) (illumination, noise, blur, rotation, crop, occlusion).
+
+\medskip
+Accuracy:
+\[
+\text{Acc}=\frac{1}{|\mathcal{D}_{test}|}\sum_{(x_j,y_j)\in\mathcal{D}_{test}}
+\mathbb{I}\big(f(\delta_\alpha(x_j))=y_j\big).
+\]
+\end{frame}
+
+% ------------------ Methods Overview ------------------
+\begin{frame}{Methods Overview}
+\begin{block}{Global subspace methods}
+\begin{itemize}
+  \item \textbf{Eigenfaces (PCA)}: project faces into top-variance linear subspace; 1-NN in PCA space.
+  \item \textbf{Fisherfaces (PCA+LDA)}: discriminative projection maximizing between-class / within-class scatter.
+\end{itemize}
+\end{block}
+
+\begin{block}{Local texture method}
+\begin{itemize}
+  \item \textbf{LBPH}: Local Binary Patterns + regional histograms; nearest-neighbor with \(\chi^2\) distance.
+\end{itemize}
+\end{block}
+
+\begin{block}{Baseline}
+\begin{itemize}
+  \item \textbf{TinyCNN} trained from scratch (no augmentation/pretraining).
+\end{itemize}
+\end{block}
+\end{frame}
+
+% ------------------ Eigenfaces ------------------
+\begin{frame}{Eigenfaces (PCA)}
+
+\medskip
+\textbf{1. Center data}
+\[
+\boldsymbol{\mu} = \frac{1}{N}\sum_i \mathbf{x}_i,
+\quad
+X = [\mathbf{x}_1-\boldsymbol{\mu}, \dots, \mathbf{x}_N-\boldsymbol{\mu}]
+\]
+\medskip
+\textbf{2. Compute PCA}
+\[
+C = \frac{1}{N}XX^\top
+\quad \rightarrow \quad
+U_K \text{ (top eigenvectors = eigenfaces)}
+\]
+\medskip
+\textbf{3. Project and classify}
+\[
+\mathbf{z} = U_K^\top (\mathbf{x}-\boldsymbol{\mu})
+\]
+1-NN in PCA space (Euclidean distance).
+\end{frame}
+
+% ------------------ Fisherfaces ------------------
+\begin{frame}{Fisherfaces (PCA + LDA)}
+Within/Between scatter:
+\[
+S_B=\sum_{i=1}^c N_i(\mu_i-\mu)(\mu_i-\mu)^\top,\quad
+S_W=\sum_{i=1}^c\sum_{\mathbf{x}\in X_i}(\mathbf{x}-\mu_i)(\mathbf{x}-\mu_i)^\top.
+\]
+Solve \(S_B\mathbf{w}=\lambda S_W\mathbf{w}\) (max \(c-1\) directions).
+
+\medskip
+\textbf{Small sample size:} \(S_W\) singular in pixel space \(\Rightarrow\) PCA to \(k_{\text{pca}}\le N-c\), then LDA to \(k_{\text{lda}}\le c-1\).
+
+\medskip
+Key practical point: stability strongly depends on controlling/capping \(k_{\text{pca}}\).
+\end{frame}
+
+% ------------------ LBPH ------------------
+\begin{frame}{LBPH: Local Binary Pattern Histograms}
+LBP code at \((x,y)\) (basic \(3\times3\)):
+\[
+\text{LBP}(x,y)=\sum_{p=0}^{7}s(g_p-g_c)2^p,\quad
+s(t)=\begin{cases}1&t\ge 0\\0&t<0\end{cases}
+\]
+LBPH: split image into regions \(\{R_j\}\), compute LBP histograms per region, concatenate.
+
+\medskip
+Matching via \(\chi^2\) distance:
+\[
+\chi^2(S,M)=\sum_{i,j}\frac{(S_{i,j}-M_{i,j})^2}{S_{i,j}+M_{i,j}}.
+\]
+Hyperparameters: sampling points \(P\), radius \(R\), number of regions.
+\end{frame}
+
+% ------------------ Datasets ------------------
+\begin{frame}{Datasets}
+\begin{block}{ORL (AT\&T)}
+\begin{itemize}
+  \item 40 subjects, 10 images/subject, grayscale.
+  \item Moderate variation: expression, slight pose, glasses.
+  \item Good for low-data sensitivity analysis.
+\end{itemize}
+\end{block}
+
+\begin{block}{Yale}
+\begin{itemize}
+  \item Frontal faces with systematic illumination variations.
+  \item Challenging for global appearance models; classic benchmark for illumination robustness.
+\end{itemize}
+\end{block}
+\end{frame}
+
+% ------------------ Evaluation Protocol ------------------
+\begin{frame}{Evaluation Protocol}
+\begin{itemize}
+  \item Accuracy vs \# training images per subject (fixed test identities, repeated random draws).
+  \item Robustness sweeps with controlled degradations:
+  \begin{itemize}
+    \item blur, noise, photometric jitter,
+    \item rotation, flips,
+    \item cropping / partial occlusion.
+  \end{itemize}
+  \item Report mean and uncertainty (std / CI depending on experiment).
+\end{itemize}
+\end{frame}
+
+% ------------------ Global Comparison: ORL/Yale ------------------
+\begin{frame}{Global Comparison (Low-Data)}
+\begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+  \textbf{ORL}
+  \begin{itemize}
+    \item Eigenfaces: strong dependence on train size; saturates \(\sim\)92--93\%.
+    \item LBPH: consistently higher; saturates early \(\ge\)97\%.
+    \item Fisherfaces: config-sensitive; capping \(k_{\text{pca}}\) stabilizes performance.
+  \end{itemize}
+
+  \column{0.5\textwidth}
+  \textbf{Yale}
+  \begin{itemize}
+    \item Overall lower due to illumination.
+    \item Eigenfaces saturates \(\sim\)82\%.
+    \item LBPH \(\sim\)84--85\% with better robustness.
+    \item Fisherfaces: benefits from more data; still sensitive to geometry shifts.
+  \end{itemize}
+\end{columns}
+
+\end{frame}
+
+% ------------------ Global Comparison Figures ------------------
+\begin{frame}{Global Comparison Figures}
+\begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{../../figures/GlobalComp_ORL_noDeep.png}\\
+  \scriptsize ORL: Eigenfaces vs LBPH
+  \column{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{../../figures/GlobalComp_Yale_noDeep.png}\\
+  \scriptsize Yale: Eigenfaces vs LBPH
+\end{columns}
+\end{frame}
+
+% ------------------ Eigenfaces Robustness ------------------
+\begin{frame}{Eigenfaces: Hyperparameter Dependence}
+\begin{itemize}
+  \item \textbf{Hyperparameter \(K\):} accuracy improves quickly then saturates beyond \(K\approx 50\).
+\end{itemize}
+
+\medskip
+\centering
+\includegraphics[width=0.6\linewidth]{../../figures/eigenfaces_hyper.png}
+\end{frame}
+
+% ------------------ Eigenfaces Robustness Figures ------------------
+\begin{frame}{Eigenfaces: Global Transformations}
+\begin{itemize}
+        \item \textbf{Most destructive:} geometric misalignment (rotation, crop).
+        \item \textbf{Moderate effect:} photometric jitter + salt-and-pepper noise (global corruption impacts projection).
+\end{itemize}
+\centering
+\includegraphics[width=0.85\linewidth]{../../figures/eigenfaces_noise.png}
+\end{frame}
+
+\begin{frame}{Eigenfaces: Geometric Robustness}
+\centering
+\begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+    \includegraphics[width=\linewidth]{../../figures/eigenfaces_rotations.png}\\
+    \scriptsize Rotation
+
+    \column{0.5\textwidth}
+    \includegraphics[width=\linewidth]{../../figures/eigenfaces_crops.png}\\
+    \scriptsize Cropping
+\end{columns}
+\end{frame}
+% ------------------ Fisherfaces Robustness ------------------
+\begin{frame}{Fisherfaces: Key Results}
+\begin{itemize}
+  \item Dominant design choice: \(k_{\text{pca}}\).
+  \begin{itemize}
+    \item Paper-aligned \(k_{\text{pca}}=N-c\) can induce peaking/non-monotonicity (esp. ORL).
+    \item Fixed/capped \(k_{\text{pca}}\) improves stability and accuracy.
+  \end{itemize}
+  \item Test-only degradations: blur, Gaussian noise, rotation, brightness scaling, flips.
+  \item Major bottleneck: \textbf{geometry} (rotation/flip) \(\gg\) small additive noise.
+\end{itemize}
+
+\medskip
+\centering
+\includegraphics[width=0.80\linewidth]{../../figures/Fisherfaces_robustness.png}
+\end{frame}
+
+% ------------------ LBPH Robustness ------------------
+\begin{frame}{LBPH: Key Results}
+\begin{itemize}
+  \item Hyperparameters \(P,R\): relatively insensitive; good region around \(P\in[4,8]\), \(R\in[2,4]\).
+  \item Robust to photometric jitter and salt-and-pepper noise (local encoding).
+  \item Rotation tolerance up to moderate angles; degrades beyond \(\sim 15^\circ\).
+  \item Main failure mode: \textbf{cropping} (removes critical facial regions / breaks spatial layout).
+  \item Also sensitive to heavy blur (esp. Yale).
+\end{itemize}
+
+\medskip
+\centering
+\includegraphics[width=0.8\linewidth]{../../figures/LBPH_robustness.png}
+\end{frame}
+
+% ------------------ LBPH Hyperparameter Figure ------------------
+\begin{frame}{LBPH: Hyperparameter Sensitivity}
+\begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{../../figures/LPBH_ORL_accuracy_3d.png}\\
+  \scriptsize ORL: \(P,R\) sweep
+  \column{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{../../figures/LPBH_Yale_accuracy_3d.png}\\
+  \scriptsize Yale: \(P,R\) sweep
+\end{columns}
+\end{frame}
+
+% ------------------ Deep Learning Baseline ------------------
+\begin{frame}{Deep Learning Baseline (TinyCNN)}
+\begin{itemize}
+  \item Trained from scratch (grayscale, CE loss, Adam), no augmentation/pretraining.
+  \item ORL: improves with train size, but weak in low-data; likely overfits.
+  \item Yale: consistently low + high variance \(\Rightarrow\) data scarcity hurts generalization.
+\end{itemize}
+
+\begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{../../figures/GlobalComp_ORL_Deep.png}\\
+  \scriptsize ORL
+  \column{0.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{../../figures/GlobalComp_Yale_Deep.png}\\
+  \scriptsize Yale
+\end{columns}
+\end{frame}
+
+% ------------------ Takeaways ------------------
+\begin{frame}{Conclusions / Takeaways}
+\begin{itemize}
+  \item Clear hierarchy in your regime:
+  \begin{itemize}
+    \item \textbf{Eigenfaces}: fragile under misalignment and illumination shifts.
+    \item \textbf{Fisherfaces}: better discrimination/illumination handling, but stability hinges on \(k_{\text{pca}}\).
+    \item \textbf{LBPH}: most reliable overall in low-data and illumination variability; fails under heavy crop/blur.
+  \end{itemize}
+  \item Deep learning (from scratch) underperforms without enough data or stronger regularization.
+  \item Practical message: classical methods remain useful baselines with interpretable failure modes.
+\end{itemize}
+
+\medskip
+\small Code: \url{https://github.com/fotisk07/VIC-Project}
+\end{frame}
+
+% ------------------ Backup: References ------------------
+\begin{frame}[allowframebreaks]{References (selected)}
+\footnotesize
+\begin{thebibliography}{9}
+\bibitem{turk1991eigenfaces} M. Turk and A. Pentland. Eigenfaces for recognition. 1991.
+\bibitem{belhumeur1997fisherfaces} P. Belhumeur et al. Eigenfaces vs. Fisherfaces. 1997.
+\bibitem{ahonen2004lbp} T. Ahonen et al. Face recognition with LBP. 2004.
+\bibitem{samaria1994orl} F. Samaria and A. Harter. Parameterisation of a stochastic model for human face identification. 1994.
+\bibitem{georghiades2001yale} A. Georghiades et al. From few to many: illumination cone models. 2001.
+\bibitem{taigman2014deepface} Y. Taigman et al. DeepFace. 2014.
+\bibitem{schroff2015facenet} F. Schroff et al. FaceNet. 2015.
+\bibitem{deng2019arcface} J. Deng et al. ArcFace. 2019.
+\end{thebibliography}
+\end{frame}
+
+\end{document}

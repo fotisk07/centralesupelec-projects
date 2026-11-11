@@ -1,0 +1,21 @@
+config_metadata: 'Saving time : Sat Apr  1 11:26:50 2023 (1680341210.3143446) ; Regime : auto-save'
+experiment_logs: logs/infer
+experiment_purpose: Predicting on test data
+mode: infer
+device: gpu
+tracker_config:
+  type:
+  - basic
+csv_path: C:\Users\Fotis\Documents\Automatants\InterCentrales 2023\Baseline\data
+batch_size: 256
+number_of_batches: -1
+shuffle_data: true
+num_workers: 1
+layers_channels:
+- 16
+- 16
+weights_path: logs/baseline_train_0/weights/epoch_4
+learning_rate: 0.001
+number_of_epochs: 10
+save_weights_under: ''
+save_infers_under: ''

@@ -1,0 +1,170 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[breaklinks=true,bookmarks=false]{hyperref}
+
+\cvprfinalcopy % *** Uncomment this line for the final submission
+
+\def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+%\ifcvprfinal\pagestyle{empty}\fi
+\setcounter{page}{4321}
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Classical Face Recognition Under Real-World Variations}
+
+\author{
+Ayoub EL KBADI, Fotios KAPOTOS, Jean MARTINI \\
+CentraleSupélec
+}
+
+
+\maketitle
+%\thispagestyle{empty}
+
+%%%%%%%%% BODY TEXT
+\section{Motivation and Problem Definition}
+
+Face recognition is a fundamental problem in computer vision with applications in security,
+identity verification, and human - computer interaction.
+
+In this project, we focus on appearance-based face recognition techniques developed prior to
+deep learning. These methods rely on explicit feature extraction and linear subspace modeling.
+
+The objective of this project is to compare three classical face recognition methods:
+\begin{itemize}
+    \item Eigenfaces (PCA-based)\cite{turk1991eigenfaces}
+    \item Fisherfaces (LDA-based)\cite{belhumeur1997fisherfaces}
+    \item Local Binary Pattern Histograms (LBPH) \cite{ahonen2004lbp}
+\end{itemize}
+and to analyze their robustness under realistic image degradations such as illumination changes,
+noise, blur, and partial occlusions.
+
+\textbf{Problem statement:}
+Given a labeled face image dataset, how do different classical face recognition algorithms perform
+under varying acquisition conditions, and what do their successes and failures reveal about global
+versus local visual representations?
+
+% =====================================================
+\section{Related Work}
+% =====================================================
+
+The Eigenfaces method introduced by Turk and Pentland applies Principal Component Analysis (PCA)
+to project face images into a low-dimensional subspace that captures the main modes of variation.
+While effective in controlled settings, Eigenfaces are highly sensitive to illumination changes.
+
+Fisherfaces extend this approach by using Linear Discriminant Analysis (LDA) to maximize class
+separability, leading to improved robustness under varying lighting conditions, provided that
+sufficient training samples are available.
+
+Local Binary Pattern Histograms (LBPH) represent faces using local texture descriptors computed
+over small neighborhoods. This local representation has been shown to be more robust to lighting
+variations and partial occlusions, at the expense of increased sensitivity to noise.
+
+
+% =====================================================
+\section{Methodology}
+% =====================================================
+
+\subsection{Algorithms}
+
+We will implement and evaluate the following methods:
+\begin{itemize}
+    \item \textbf{Eigenfaces}: PCA-based dimensionality reduction followed by nearest-neighbor classification.
+    \item \textbf{Fisherfaces}: LDA applied after PCA to improve class discrimination.
+    \item \textbf{LBPH}: Local Binary Pattern feature extraction with histogram-based comparison.
+\end{itemize}
+
+
+\subsection{Datasets}
+
+We conduct our experiments on two standard face recognition datasets that are widely used in
+the evaluation of classical appearance-based methods.
+
+\paragraph{ORL (AT\&T) Face Dataset.}
+The ORL face dataset~\cite{samaria1994orl} contains images of 40 individuals, with 10 grayscale
+images per subject. The images exhibit moderate variations in facial expression, pose, and the
+presence of accessories such as glasses. Due to its controlled nature and limited variability,
+this dataset is well suited for analyzing baseline performance and the impact of training set
+size on recognition accuracy.
+
+\paragraph{Yale Face Dataset.}
+The Yale face dataset~\cite{georghiades2001yale} includes frontal face images captured under
+systematically varying illumination conditions. This dataset is particularly challenging for
+global appearance-based methods and is therefore well suited for studying robustness to lighting
+changes. It provides a classical benchmark for evaluating the effectiveness of discriminative
+subspace methods and local texture-based representations.
+
+\paragraph{Custom In-the-Wild Face Dataset.}
+In addition to standard benchmarks, we collect a small custom face dataset composed of images of the project members acquired in unconstrained, real-world conditions.
+The images exhibit significant variability in illumination, background, pose, facial expression, image quality, and partial occlusions.
+Although limited in size, this dataset provides a qualitative stress test for classical face recognition methods and highlights their limitations outside controlled acquisition settings.
+It complements the ORL and Yale datasets by exposing failure modes that arise in more realistic scenarios.
+
+
+\section{Evaluation}
+The proposed methods are evaluated using a combination of quantitative and qualitative analyses,
+with an emphasis on robustness and interpretability rather than raw recognition performance.
+\paragraph{Experimental Protocol.}
+For each dataset, we vary the number of training images per subject in order to study sample
+efficiency and sensitivity to limited supervision.
+Test images are kept fixed across experiments to ensure fair comparison between methods.
+When applicable, results are averaged over multiple random training splits.
+
+To assess robustness, controlled degradations are applied to the test images only.
+These include illumination changes, additive Gaussian noise, image blur, and partial occlusions.
+Each degradation is applied at increasing levels of severity, yielding robustness curves that
+characterize performance decay under progressively more challenging conditions.
+
+\paragraph{Evaluation Metrics.}
+Performance is primarily measured using recognition accuracy, complemented by confusion matrices
+to analyze class-specific failure patterns.
+Robustness curves plot recognition accuracy as a function of degradation strength, providing a
+compact visualization of stability under adverse conditions.
+
+\paragraph{Qualitative Analysis.}
+Beyond quantitative metrics, we perform qualitative analysis by visualizing learned Eigenfaces
+and Fisherfaces, as well as representative success and failure cases.
+These visualizations help interpret what variations are captured by global subspace methods
+(illumination, identity, or noise) and contrast them with the locality-driven behavior of LBP-based
+descriptors, thereby explaining observed performance trends.
+
+\paragraph{Reference Comparison with Deep Learning Methods.}
+For reference, we also include a comparison with a lightweight deep learning-based face recognition model.
+This comparison is not intended to achieve state-of-the-art performance, but to provide contextual insight into the gap between classical appearance-based methods and modern learned representations, particularly under unconstrained acquisition conditions.
+The deep learning model is evaluated using the same experimental protocol and test sets when possible, and its results are reported solely as a point of reference.
+
+
+% =====================================================
+\section{Expected Contributions}
+% =====================================================
+
+The project aims to deliver:
+\begin{itemize}
+    \item A reproducible experimental comparison of classical face recognition methods
+    \item An analysis of global versus local visual representations
+    \item Clean, well-documented code and experimental protocols
+\end{itemize}
+
+
+
+{\small
+\bibliographystyle{ieee}
+\bibliography{egbib}
+}
+
+\end{document}

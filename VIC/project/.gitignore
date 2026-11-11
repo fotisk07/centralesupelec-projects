@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+.vscode/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.DS_Store
+
+# Virtual environments
+.venv
+
+# latex
+*.gz
+*.bbl
+*.fls
+*.aux
+*.fdb_latexmk
+*.log
+
+
+data/*
+!data/download.sh
+
+*/*/output/
+test.ipynb

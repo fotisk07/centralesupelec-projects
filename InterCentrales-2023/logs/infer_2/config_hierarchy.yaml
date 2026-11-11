@@ -1,0 +1,4 @@
+config_hierarchy:
+- C:\Users\Fotis\Documents\Automatants\InterCentrales 2023\Baseline\configs\default.yaml
+- paths_on_your_machine
+- infer_config

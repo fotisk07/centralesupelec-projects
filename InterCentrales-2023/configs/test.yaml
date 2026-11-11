@@ -1,0 +1,12 @@
+# General config
+experiment_logs: "logs/UUnet/"
+experiment_purpose: "Train a UUNET model"
+
+# Data config
+batch_size: 4
+num_workers: 4
+
+# Training config
+number_of_epochs: 5
+save_weights_under: "weights"
+number_of_batches: 10

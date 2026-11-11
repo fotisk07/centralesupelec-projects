@@ -1,0 +1,38 @@
+[project]
+name = "vic"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Fotis", email = "fotiskapotos@gmail.com" },
+    { name = "Jean", email = "jeanjnmv@gmail.com" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "matplotlib>=3.9.4",
+    "numpy>=2.0.2",
+    "opencv-python>=4.11.0.86",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.6.1",
+    "seaborn>=0.13.2",
+    "torch>=2.8.0",
+    "tqdm>=4.67.1",
+]
+
+[project.scripts]
+vic = "vic.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.31.0",
+    "ty>=0.0.10",
+]
+
+[tool.ruff]
+ignore = [
+    "D103","N806", "N802", "D100", "N803","D101","ANN204","D102","D107"
+]

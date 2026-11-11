@@ -1,0 +1,17 @@
+2023-04-02 16:36:38,902 : [TRACKER] Starting experiment...
+
+2023-04-02 16:36:38,903 : [INFO] Starting training.
+2023-04-02 16:37:11,454 : [INFO] Performed batch 2/10
+2023-04-02 16:37:30,308 : [INFO] Performed batch 4/10
+2023-04-02 16:37:48,575 : [INFO] Performed batch 6/10
+2023-04-02 16:38:07,115 : [INFO] Performed batch 8/10
+2023-04-02 16:38:25,498 : [INFO] Performed batch 10/10
+2023-04-02 16:38:26,230 : [INFO] Epoch 1/5 : loss = 1.35604423129738.
+2023-04-02 16:38:57,588 : [INFO] Performed batch 2/10
+2023-04-02 16:39:16,203 : [INFO] Performed batch 4/10
+2023-04-02 16:39:34,682 : [INFO] Performed batch 6/10
+2023-04-02 16:39:53,194 : [INFO] Performed batch 8/10
+2023-04-02 16:40:11,628 : [INFO] Performed batch 10/10
+2023-04-02 16:40:12,352 : [INFO] Epoch 2/5 : loss = 1.338011126773604.
+
+2023-04-02 16:40:47,239 : [TRACKER] Experiment has concluded !

@@ -1,0 +1,31 @@
+[project]
+name = "project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Fotis", email = "fotiskapotos@gmail.com" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "gymnasium>=0.29.0",
+    "iprogress>=0.4",
+    "ipyprogress>=0.1.0",
+    "ipywidgets>=8.1.8",
+    "matplotlib>=3.9.4",
+    "pandas-profiling>=3.6.6",
+    "pillow>=11.3.0",
+    "text-flappy-bird-gym",
+    "tqdm>=4.67.3",
+    "wandb[media]>=0.25.1",
+    "widgetsnbextension>=4.0.15",
+]
+
+
+[tool.uv.sources]
+text-flappy-bird-gym = { git = "https://gitlab-research.centralesupelec.fr/stergios.christodoulidis/text-flappy-bird-gym.git" }
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.31.0",
+]

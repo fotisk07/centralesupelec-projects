@@ -1,0 +1,411 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig} 
+\usepackage{graphicx}
+\usepackage{amsmath} 
+\usepackage{amssymb} 
+\usepackage{subfig}
+
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[breaklinks=true,bookmarks=false]{hyperref}
+\usepackage{todonotes}
+
+\cvprfinalcopy % *** Uncomment this line for the final submission 
+
+\def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+%\ifcvprfinal\pagestyle{empty}\fi
+\setcounter{page}{1}
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Classical Face Recognition Under Real-World Variations}
+
+\author{
+Ayoub EL KBADI \and Fotios KAPOTOS \\ CentraleSupélec \and Jean-Vincent MARTINI 
+}
+
+
+\maketitle
+%\thispagestyle{empty}
+
+%%%%%%%%% BODY TEXT
+
+\begin{abstract}
+    Face recognition is a classical problem in computer vision that predates modern deep learning approaches and relies on explicit feature extraction and linear subspace modeling. This report presents a comparative study of three well-established appearance-based face recognition methods: Eigenfaces (PCA) \cite{turk1991eigenfaces}, Fisherfaces (LDA) \cite{belhumeur1997fisherfaces}, and Local Binary Pattern Histograms (LBPH) \cite{ahonen2004lbp}. Using the ORL (AT\&T) dataset \cite{samaria1994orl} and the Yale Face Dataset \cite{georghiades2001yale} we evaluate these methods under controlled and realistic acquisition conditions. The evaluation focuses on robustness to common image degradations, including illumination changes, additive noise, blur, and partial occlusions, as well as sensitivity to limited training data. Quantitative results are complemented by qualitative analyses such as subspace visualizations, confusion matrices, and representative success and failure cases, providing insight into the strengths and limitations of global versus local visual representations. Overall, the study highlights the interpretability, failure modes, and practical relevance of non-deep-learning face recognition techniques. The full code is available at \url{https://github.com/fotisk07/VIC-Project}.
+\end{abstract}
+
+\section{Introduction and Motivation}
+
+Face recognition is a fundamental problem in computer vision with applications ranging from access control, security, identity verification, to human - computer interaction. The goal of face recognition is to automatically identify or verify a person based on visual information captured by devices such as cameras. We will not focus on deep learning-based methods, which have become dominant in recent years, but rather on classical appearance-based techniques which are of practical interest due to their interpretability, low computational requirements, and minimal training data requirements.
+
+This project focues on three well-established classical face recognition methods: Eigenfaces, based on Principal Component Analysis (PCA) \cite{turk1991eigenfaces}; Fisherfaces, based on Linear Discriminant Analysis (LDA) \cite{belhumeur1997fisherfaces}; and Local Binary Pattern Histograms (LBPH) \cite{ahonen2004lbp}, which encode local texture information. These methods embody fundamentally different modeling philosophies, ranging from global linear subspace representations to local, texture-based descriptors. % It serves as a final assessment for the course "Introduction to Visual Computing" offered at CentraleSupélec.
+
+We aim to provide a comprehensive comparative evaluation of these methods under varying image acquisition conditions and degradations, such as illumination changes, noise, blur, and partial occlusions. The goal is to determine how robust are these classical techniques to real-world variations and how their performance degrades under those conditions. We will also analyze their sensitivity to limited training data, which is a common practical constraint.
+
+Understanding these questions is important not only for appreciating the evolution of face recognition techniques but also for informing the design of lightweight, interpretable systems in constrained environments or low-data scenarios. Potential applications may include embedded systems, mobile devices, or baseline models for benchmarking and analysis. 
+
+\section{Problem Definition} 
+
+We consider a supervised face recognition problem defined over a labeled dataset of face images. Let 
+\begin{equation*}
+    \mathcal{D} = \{(x_i, y_i)\}_{i=1}^N
+\end{equation*}
+denote a dataset of $N$ grayscale face images, where $x_i \in \mathbb{R}^{H \times W}$ represents the $i$-th image of height $H$ and width $W$, and $y_i \in \{1, 2, \ldots, C\}$ is the corresponding identity label indicating one of $C$ distinct individuals. Each image is assumed to be preprocessed to a standard size and aligned such that facial features are approximately centered, but may vary in terms of illumination, pose, expression, noise level, or partial occlusions.
+
+Given a training subset $\mathcal{D}_{train} \subset \mathcal{D}$, the task is to learn a mapping function
+\begin{equation*}
+    f: \mathbb{R}^{H \times W} \rightarrow \{1, 2, \ldots, C\}
+\end{equation*}
+that predicts the identity label of previously unseen test images. 
+
+To evaluate robustness, we consider a family of image degradation operators 
+\begin{equation*}
+    \delta_{\alpha}: \mathbb{R}^{H \times W} \rightarrow \mathbb{R}^{H \times W}
+\end{equation*}
+parameterized by a severity level $\alpha$, modeling effects like illumination changes, additive Gaussian noise, blur, rotation, etc. The primarily objective is always to maximize recognition accuracy
+\begin{equation*}
+    \text{Accuracy} = \frac{1}{|\mathcal{D}_{test}|} \sum_{(x_j, y_j) \in \mathcal{D}_{test}} \mathbb{I}(f(\delta_{\alpha}(x_j)) = y_j)
+\end{equation*}
+on the test set $\mathcal{D}_{test}$ and to analyze how this accuracy degrades with respect to the severity $\alpha$ of the applied degradations.
+
+\section{Related Work}
+
+The Eigenfaces method introduced by Turk and Pentland applies Principal Component Analysis (PCA)
+to project face images into a low-dimensional subspace that captures the main modes of variation \cite{turk1991eigenfaces}.
+While effective in controlled settings, Eigenfaces remain highly sensitive to illumination changes.
+
+Fisherfaces extend this approach by using Linear Discriminant Analysis (LDA) to maximize class separability, leading to improved robustness under varying lighting conditions, provided that sufficient training samples are available \cite{belhumeur1997fisherfaces}. Unlike PCA, which minimizes total reconstruction error, LDA explicitly discriminates between classes, making it more suitable for classification tasks where lighting variation exceeds identity variation.
+
+Local Binary Pattern Histograms (LBPH) represent faces using local texture descriptors computed over small neighborhoods \cite{ahonen2004lbp}. This local representation has been shown to be more robust to lighting variations and partial occlusions compared to holistic methods, albeit at the expense of increased sensitivity to noise.
+
+Significant advancements in face recognition have recently been driven by deep convolutional neural networks (CNNs), which learn hierarchical feature representations directly from raw pixels. A pivotal shift occurred with the introduction of DeepFace, which approached human-level performance by utilizing a deep CNN trained on a massive dataset to learn generic face representations \cite{taigman2014deepface}. This was followed by FaceNet, which introduced the triplet loss function to map face images directly into a compact Euclidean space where distances correspond to face similarity, unifying representation and verification \cite{schroff2015facenet}. More recently, margin-based loss functions, such as those used in ArcFace, have further enhanced discrimination by enforcing angular margins between classes in the embedding space, significantly improving performance on unconstrained large-scale benchmarks \cite{deng2019arcface}.
+
+
+\section{Methodology}
+\subsection{Face Recognition Algorithms}
+
+\subsubsection{Eigenfaces}
+
+The Eigenfaces method, introduced by Turk and Pentland \cite{turk1991eigenfaces}, is based on Principal Component Analysis (PCA). The core idea is to represent face images in a low-dimensional linear subspace that captures the dominant modes of variation present in the training data.
+
+Each grayscale face image \( x_i \in \mathbb{R}^{H \times W} \) is vectorized into a column vector \( \mathbf{x}_i \in \mathbb{R}^{D} \), where \( D = H \cdot W \). Given a training set of \( N \) images, the mean face is computed as
+\[
+\boldsymbol{\mu} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{x}_i .
+\]
+The centered data vectors are then defined as \( \tilde{\mathbf{x}}_i = \mathbf{x}_i - \boldsymbol{\mu} \) and stacked into a data matrix
+\[
+X = [\tilde{\mathbf{x}}_1, \tilde{\mathbf{x}}_2, \dots, \tilde{\mathbf{x}}_N] \in \mathbb{R}^{D \times N}.
+\]
+
+PCA aims to find an orthonormal basis that maximizes the variance of the projected data. This is achieved by computing the eigenvectors of the covariance matrix
+\[
+C = \frac{1}{N} XX^\top .
+\]
+Since the image dimensionality \( D \) is typically much larger than the number of training samples \( N \), the eigen-decomposition is efficiently performed using the smaller matrix \( X^\top X \). The leading \( K \) eigenvectors of \( C \), corresponding to the largest eigenvalues, define the principal subspace. When reshaped back to image form, these eigenvectors are referred to as \emph{eigenfaces}.
+
+A face image \( \mathbf{x} \) is projected onto the eigenface subspace by
+\[
+\mathbf{z} = U_K^\top (\mathbf{x} - \boldsymbol{\mu}),
+\]
+where \( U_K \in \mathbb{R}^{D \times K} \) contains the top \( K \) eigenvectors. Face recognition is then performed by comparing projected feature vectors using a distance metric such as Euclidean distance, typically within a nearest-neighbor classification framework.
+
+\subsubsection{Fisherfaces}
+
+Fisherfaces \cite{belhumeur1997fisherfaces} is a discriminative subspace method that combines Principal Component Analysis (PCA) with Linear Discriminant Analysis (LDA). It learns a linear projection that maximizes class separability by maximizing the ratio of between-class to within-class scatter.
+
+%\paragraph{Formulation.}
+Let each training image be vectorized as $\mathbf{x}\in\mathbb{R}^n$ and let there be $c$ subjects. Denote by $\boldsymbol{\mu}_i$ the mean of class $i$, and by $\boldsymbol{\mu}$ the global mean. The scatter matrices are
+\begin{align}
+S_B &= \sum_{i=1}^c N_i(\boldsymbol{\mu}_i-\boldsymbol{\mu})(\boldsymbol{\mu}_i-\boldsymbol{\mu})^T,\\
+S_W &= \sum_{i=1}^c \sum_{\mathbf{x}_k\in X_i}(\mathbf{x}_k-\boldsymbol{\mu}_i)(\mathbf{x}_k-\boldsymbol{\mu}_i)^T.
+\end{align}
+The LDA directions solve the generalized eigenproblem $S_B\mathbf{w}=\lambda S_W\mathbf{w}$, with at most $c-1$ discriminant directions.
+
+%\paragraph{PCA + LDA (small sample size).}
+In face recognition, $n\gg N$, making $S_W$ singular in the original image space. Fisherfaces therefore first projects the data with PCA to a subspace of dimension $k_{\text{pca}}\le N-c$, then applies LDA in that PCA space to obtain up to $k_{\text{lda}}\le c-1$ discriminant components. The final projection is $W = W_{\text{pca}} W_{\text{lda}}$.
+
+%\paragraph{Classifier.}
+We use 1-nearest neighbor (1-NN) with Euclidean distance in Fisherface space.
+
+%\paragraph{Practical variants.}
+In experiments, we report both a paper-aligned setting ($k_{\text{pca}}=N-c$, $k_{\text{lda}}=c-1$ when feasible) and stability-oriented variants, such as capping $k_{\text{pca}}$ and adding a small ridge term to the within-class scatter in PCA space.
+
+\subsubsection{Local Binary Pattern Histograms (LBPH)}
+
+LBPH is a texture-based face recognition method that encodes local appearance information while preserving spatial structure. This approach was introduced by Ahonen et al. \cite{ahonen2004lbp}, motivated by the observation that face images can be viewed as compositions of local texture patterns, such as edges, spots, and flat areas.
+
+The core component of LBPH is the Local Binary Pattern (LBP) operator introduced by Ojala et al. \cite{ojala1996comparative}. Applied to a grayscale image, the LBP operator is computed at each pixel location $(x, y)$ by thresholding the pixel’s neighborhood against its center value. In the basic $3 \times 3$ case, the operator compares the center pixel intensity $g_c$ with its 8 surrounding neighbors $\{g_p\}_{p=0}^{7}$, producing a binary code:
+
+\begin{equation}
+    \text{LBP}(x, y) = \sum_{p=0}^{7} s(g_p - g_c) 2^p, \quad s(t) = \begin{cases} 1, & t \geq 0 \\ 0, & t < 0 \end{cases}
+\end{equation}
+
+This formulation was later generalized to circular neighborhoods $P$ sampling points on a circle of radius $R$ \cite{ojala2002multiresolution}, allowing for multi-scale texture analysis. Another important extension to the original LBP operator is the concept of uniform patterns \cite{ojala2002multiresolution}, which reduces the number of possible LBP codes by focusing on patterns with at most two bitwise transitions. This significantly decreases the dimensionality of the resulting histograms while retaining discriminative power.
+
+While a global LBP histogram captures texture information, it discards spatial layout, which is crucial for face recognition. To address this, the LBPH method divides the face image into $m$ distinct rectangular regions $\{R_j\}_{j=0}^{m-1}$. For each region, an LBP histogram $H_{i,j}$ is computed:
+
+\begin{equation}
+    H_{i,j} = \sum_{(x,y)} \mathbb{I}\{\text{LBP}(x,y) = i\}\mathbb{I}\{(x,y) \in R_j\}
+\end{equation}
+where $i$ indexes the LBP labels. The final feature vector for the face image is obtained by concatenating all regional histograms into a single feature vector. This representation encodes texture information at three different levels: pixel-level (via LBP codes), region-level (via histograms), and global-level (via concatenation).
+
+Face recognition is then performed using a nearest-neighbor classifier in the histogram feature space. Given two feature vectors $S$ and $M$, many distance metrics can be used to measure similarity, such as histogram intersection, log-likelihood, and $\chi^2$ distance. We ultimately use the $\chi^2$ distance, due its better performance in practice \cite{ahonen2004lbp}:
+
+\begin{equation}
+    \chi^2(S, M) = \sum_{i,j} \frac{(S_{i,j} - M_{i,j})^2}{S_{i,j} + M_{i,j}}
+\end{equation}
+
+Moreover, the $\chi^2$ formulation naturally extends to a weighted version, allowing for differential emphasis on certain regions if desired:
+
+\begin{equation}
+    \chi^2_w(S, M) = \sum_{i,j} w_{j} \frac{(S_{i,j} - M_{i,j})^2}{S_{i,j} + M_{i,j}}
+\end{equation}
+
+As explained, LPBH involves several hyperparameters that can be tuned to optimize performance for a given dataset and application. These include the number of sampling points $P$ and radius $R$ for the LBP operator, the number of regions $m$ to divide the face image into, etc. Ahonen et al. show that LBPH performance is relatively insensitive to moderate changes in these parameters, offering a favorable trade-off between recognition accuracy and feature dimensionality. Despite its robustness to illumination changes, facial expressions, and moderate misalignment, LBPH has notable limitations. The concatenated histograms can become high-dimensional, leading to increased memory usage and slower matching for large datasets. Furthermore, the method relies on handcrafted features and nearest-neighbor classification, limiting its ability to model complex intra-class variations.
+
+\subsection{Datasets}
+We conduct our experiments on two standard face recognition datasets that are widely used in
+the evaluation of classical appearance-based methods.
+
+\paragraph{ORL (AT\&T) Face Dataset.}
+The ORL face dataset~\cite{samaria1994orl} contains images of 40 individuals, with 10 grayscale
+images per subject. The images exhibit moderate variations in facial expression, pose, and the
+presence of accessories such as glasses. Due to its controlled nature and limited variability,
+this dataset is well suited for analyzing baseline performance and the impact of training set
+size on recognition accuracy.
+
+\paragraph{Yale Face Dataset.}
+The Yale face dataset~\cite{georghiades2001yale} includes frontal face images captured under
+systematically varying illumination conditions. This dataset is particularly challenging for
+global appearance-based methods and is therefore well suited for studying robustness to lighting
+changes. It provides a classical benchmark for evaluating the effectiveness of discriminative
+subspace methods and local texture-based representations. 
+
+\section{Evaluation}
+
+\subsection{Global Comparison of Methods}
+
+We now provide a global comparison of the classical methods under a common low-data protocol. 
+For compactness, Figures~\ref{fig:global_orl} and \ref{fig:global_yale} plot Eigenfaces and LBPH directly. Fisherfaces is discussed in the same global context below and analyzed in detail in Section~5.2.2 because its behavior depends strongly on the PCA/LDA configuration.
+Recognition accuracy is reported as a function of the number of training images per subject, using fixed test identities and repeated random training draws.
+
+\paragraph{ORL dataset.}
+Figure~\ref{fig:global_orl} reports the accuracy obtained on the ORL dataset as the number of training images per subject increases from 1 to 7.
+
+Eigenfaces exhibit a strong dependency on the amount of available training data. With very limited supervision (1-2 images per subject), performance is relatively low and unstable, reflecting the difficulty of estimating a meaningful global PCA subspace from few samples. Accuracy improves steadily as more images are available, eventually reaching a plateau around 92--93\% for 6-7 training images per subject.
+
+In contrast, LBPH consistently outperforms Eigenfaces across all training regimes. Even in the low-data setting, LBPH achieves higher accuracy, and its performance saturates earlier, exceeding 97\% accuracy from 5 training images per subject onward. This behavior highlights the robustness of local texture-based representations when only limited data is available.
+
+Fisherfaces on ORL is more configuration-sensitive: with the paper-aligned PCA growth ($k_{\text{pca}}=N-c$), performance can become non-monotone with train size, while fixed/capped $k_{\text{pca}}$ produces substantially more stable and higher accuracy curves. In practice, this places Fisherfaces between Eigenfaces and LBPH in robustness, but only when PCA dimensionality is controlled.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../../figures/GlobalComp_ORL_noDeep.png}
+    \caption{Recognition accuracy on the ORL dataset as a function of the number of training images per subject. Eigenfaces and LBPH are compared using identical evaluation protocols.}
+    \label{fig:global_orl}
+\end{figure}
+
+
+\paragraph{Yale dataset.}
+Figure~\ref{fig:global_yale} presents the same comparison on the Yale dataset, which is more challenging due to stronger illumination variations and facial expression changes.
+
+Overall accuracies are lower than on ORL for both methods. Eigenfaces show clear saturation around 82\%, even as the number of training images increases, indicating a limited capacity to model the variability present in the dataset. Increasing the training set beyond 6 images per subject brings little to no improvement.
+
+LBPH again demonstrates superior robustness. While the gap between the two methods is smaller than on ORL, LBPH consistently achieves higher accuracy, reaching approximately 84--85\% at saturation. This confirms that local descriptors are less sensitive to global appearance changes such as illumination, which strongly affect PCA-based representations.
+
+On Yale, Fisherfaces generally benefits from more training data and behaves more regularly than on ORL, especially under fixed/capped $k_{\text{pca}}$. This is consistent with LDA's objective (reducing within-class illumination scatter), but Fisherfaces remains more sensitive than LBPH to geometric distribution shifts.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{../../figures/GlobalComp_Yale_noDeep.png}
+    \caption{Recognition accuracy on the Yale dataset as a function of the number of training images per subject. The dataset exhibits stronger illumination and expression variability, resulting in lower overall performance.}
+    \label{fig:global_yale}
+\end{figure}
+
+\paragraph{Discussion.}
+Across both datasets, the three methods show a consistent hierarchy. Eigenfaces is the most fragile global baseline, particularly under data scarcity and distribution shifts. Fisherfaces improves discrimination and illumination handling, but its stability is strongly controlled by PCA dimensionality choices. LBPH remains the most reliable method overall in our regime, especially in low-data settings and under appearance variability, due to its local texture representation.
+
+
+\subsection{Robustness Analysis by Method}
+\subsubsection{Eigenfaces}
+\paragraph{Influence of the number of principal components.}
+We first analyze the sensitivity of Eigenfaces to the number of retained principal components \(K\). The results can be seen in \ref{fig:eigenfaces_hyper}. This parameter directly controls the dimensionality of the PCA subspace.
+
+Across both ORL and Yale datasets, we observe a rapid improvement in recognition accuracy as \(K\) increases from very small values. However, this gain quickly saturates: beyond approximately \(K = 50\), increasing the number of components yields marginal or no improvement. In some cases, performance even slightly fluctuates due to overfitting to dataset-specific variations. This behavior indicates that most discriminative identity information is captured by the leading eigenvectors, and that retaining additional components mainly encodes noise, illumination changes, or other non-discriminative factors.
+
+As a result, all subsequent Eigenfaces experiments are conducted using values of \(K\) within this saturation regime, ensuring that observed failures cannot be attributed to an under-parameterized representation.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../../figures/eigenfaces_hyper.png}
+    \caption{Impact of $K$ on ORL and Yale dataset}
+    \label{fig:eigenfaces_hyper}
+\end{figure}
+
+\paragraph{Global robustness evaluation protocol.}
+To assess the robustness of Eigenfaces, we evaluate its performance under a range of controlled image transformations designed to violate the method's core assumptions. For each transformation, we apply the same perturbation to both training and test images and report mean accuracy over multiple random train--test splits with a fixed test set.
+
+Figure~\ref{fig:eigenfaces_stage1} presents a global comparison of several transformation families, including Gaussian blur, photometric jitter with impulsive noise, random rotations, and random cropping. These transformations probe complementary failure modes such as loss of high-frequency information, photometric instability, and geometric misalignment.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{../../figures/eigenfaces_noise.png}
+    \caption{Impact of transformations on the accuray of Eigenfaces}
+    \label{fig:eigenfaces_stage1}
+\end{figure}
+
+\paragraph{Breakdown by transformation type.}
+The global comparison reveals that Eigenfaces are particularly sensitive to geometric perturbations (Fig.\ref{fig:eigenfaces_stage2}). Random rotations and random crops cause the most severe drops in accuracy on both datasets, even at moderate transformation strengths. This confirms that Eigenfaces rely heavily on strict pixel-level alignment and lack any form of geometric invariance. In contrast, Gaussian blur induces almost n not degradation, suggesting that while high-frequency details contribute to identity discrimination, they are not the sole determining factor.
+
+Photometric jitter combined with salt-and-pepper noise also significantly impacts performance and leads to increased variance across runs. This reflects the global nature of PCA-based representations: localized corruption or intensity shifts affect the entire projected feature vector.
+
+\begin{figure}[t]
+    \centering
+
+    % --- Top row ---
+    \includegraphics[width=0.48\linewidth]{../../figures/eigenfaces_gb.png}
+    \hfill
+    \includegraphics[width=0.48\linewidth]{../../figures/eigenfaces_sp_noise.png}
+
+    \vspace{0.4cm}
+
+    % --- Bottom row ---
+    \includegraphics[width=0.48\linewidth]{../../figures/eigenfaces_rotations.png}
+    \hfill
+    \includegraphics[width=0.48\linewidth]{../../figures/eigenfaces_crops.png}
+
+    \caption{Severity analysis of Eigenfaces under different transformation families. 
+    Top-left: Gaussian blur. Top-right: photometric jitter with salt-and-pepper noise.
+    Bottom-left: random rotations. Bottom-right: random cropping.
+    Accuracy is reported as a function of transformation severity (mean $\pm$ standard deviation).}
+    \label{fig:eigenfaces_stage2}
+\end{figure}
+
+
+\subsubsection{Fisherfaces}
+\paragraph{Influence of hyperparameters ($k_{\text{pca}}$, $k_{\text{lda}}$, regularization).}
+We evaluate Fisherfaces with a fixed test split, repeated random training draws, and a 1-NN Euclidean classifier in Fisherface space. The dominant design choice is the PCA dimension $k_{\text{pca}}$. In the paper-aligned setting, $k_{\text{pca}}=N-c$ grows with training size, while $k_{\text{lda}}\le c-1$. Empirically, this growth can induce a peaking effect: after an intermediate regime, increasing dimensionality can reduce test accuracy due to higher estimation variance and numerical conditioning issues in the LDA stage.
+
+This effect is strongest on ORL (larger number of classes), where baseline Fisherfaces can become non-monotone with train size. Fixing/capping $k_{\text{pca}}$ across train sizes produces much more stable curves and substantially better accuracy. On Yale, the same phenomenon is milder, but fixed/capped $k_{\text{pca}}$ still yields the most consistent behavior. Additional variants (strict mode, ridge regularization, per-image normalization) change stability margins, but none dominates the impact of PCA dimension control.
+
+\paragraph{Robustness evaluation protocol.}
+We report Fisherfaces robustness under \textbf{test-only} degradations: the training set is kept clean while the same degradation is applied to all test images. We use a fixed test set (3 images/subject) and a fixed training size (7 images/subject) with multiple random training draws, and we report mean accuracy with 95\% confidence intervals.
+We sweep blur $\sigma \in \{0,1,3,5,7\}$, Gaussian noise standard deviation $\in \{0,1,5,10,20\}$, rotation angles $\in \{0^\circ,5^\circ,10^\circ,15^\circ,20^\circ,30^\circ\}$, brightness factors $\in \{0.1,0.5,1,2,5\}$, and flips in $\{\text{none},\text{horizontal},\text{vertical}\}$.
+Figure~\ref{fig:fisherfaces_robustness} summarizes the sensitivity trends on ORL and Yale.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{../../figures/Fisherfaces_robustness.png}
+    \caption{Sensitivity of Fisherfaces to blur, Gaussian noise, rotation, brightness scaling, and flips (mean $\pm$ 95\% CI), evaluated with test-only degradations on ORL and Yale.}
+    \label{fig:fisherfaces_robustness}
+\end{figure}
+
+\paragraph{Results by transformation type.}
+\textbf{Rotation.} Rotation is among the most destructive transformations. On both datasets, accuracy drops sharply at moderate angles (already at $5^\circ$) and becomes very low beyond $10^\circ$--$15^\circ$. This reflects Fisherfaces' reliance on pixel-level alignment: a global linear subspace offers no explicit geometric invariance.
+
+\textbf{Flip.} Flips create a strong distribution shift. Even a horizontal flip causes a large accuracy drop, and vertical flips nearly break recognition (with vertical flips slightly less destructive than horizontal on Yale). This is expected because the learned subspace and nearest-neighbor matching are trained on a specific canonical orientation.
+
+\textbf{Blur.} Increasing Gaussian blur overall degrades performance, as it removes high-frequency discriminative information. The degradation is more pronounced on ORL than on Yale.
+
+\textbf{Brightness scaling.} Brightness scaling shows a peaked behavior: performance is maximal near factor 1.0 and deteriorates strongly for extreme darkening/brightening, often approaching chance-level recognition under severe shifts. This indicates limited robustness to global intensity scaling when per-image normalization is not enforced.
+
+\textbf{Gaussian noise.} In contrast to geometric and strong photometric shifts, additive Gaussian noise in the tested range yields little to no degradation: accuracy remains close to its no-noise baseline across noise levels, within confidence intervals. This suggests that, under our test-only protocol and for these noise magnitudes, the dominant robustness bottlenecks are misalignment and large illumination scaling rather than small pixel-level perturbations.
+
+\paragraph{Discussion.}
+Fisherfaces improves over Eigenfaces when class-discriminative structure is well estimated, but its practical reliability depends primarily on controlling $k_{\text{pca}}$. Under controlled dimensionality, Fisherfaces is competitive on photometric variation (especially Yale), yet it remains distinctly vulnerable to geometric shifts (rotation/flip), where LBPH is typically more robust.
+
+\subsubsection{Local Binary Pattern Histogram}
+
+\paragraph{Influence of the parameters $P$ and $R$.}
+We first analyze the sensitivity of LBPH to its key hyperparameters: the number of sampling points $P$ and the radius $R$ of the circular neighborhood. These parameters control the granularity and scale of local texture encoding. The result for the ORL and Yale datasets can respectively be seen in \ref{fig:lbph_hyper}(a) and \ref{fig:lbph_hyper}(b).
+
+On both datasets, we observe that LBPH performance is relatively robust to moderate variations in $P$ and $R$. Recognition accuracy remains high across a wide range of parameter combinations, but the best performance is typically achieved for $P$ in the range of 4 to 8 and $R$ in the range of 2 to 4 pixels. This suggests that capturing local texture information at a moderate scale is sufficient, and even optimal, for discriminating between subjects in these datasets. Extreme values of $P$ and $R$ tend to slightly degrade performance, likely due to either insufficient local detail or excessive smoothing of texture patterns. To mitigate between performace and computational cost, we select $P=8$ and $R=2$ for all subsequent LBPH experiments, as these values consistently yield near-optimal accuracy across both datasets while keeping the feature dimensionality manageable.
+
+\begin{figure}[t]
+    \centering
+    \subfloat[ORL dataset]{
+        \includegraphics[width=0.4\linewidth]{../../figures/LPBH_ORL_accuracy_3d.png}
+        \label{fig:lbph_orl}
+    }
+    \hfill
+    \subfloat[Yale dataset]{
+        \includegraphics[width=0.4\linewidth]{../../figures/LPBH_Yale_accuracy_3d.png}
+        \label{fig:lbph_yale}
+    }
+    \caption{Impact of LBPH parameters $P$ (number of sampling points) and $R$ (radius) on recognition accuracy.}
+    \label{fig:lbph_hyper}
+\end{figure}
+
+\paragraph{Global robustness evaluation protocol and Results by transformation type.}
+
+We evaluate the robustness of LBPH using the same global protocol as for Eigenfaces, applying controlled transformations to the test set and measuring accuracy degradation. We consider 4 transformation families: Gaussian blur, photometric jitter with salt-and-pepper noise, random rotations, and random cropping. The results are presented in Figure~\ref{fig:lbph_robustness}.
+
+Our results indicate that LBPH behaves differently from Eigenfaces and Fisherfaces under these transformations. LBPH is seems sensitive to Gaussian blur, especially on the Yale dataset where the performance decreases to around 60\% at the highest blur level. 
+
+However, LBPH is relatively robust to photometric jitter and salt-and-pepper noise, with only drops on the Yale dataset at the highest noise levels. This suggests that the local texture encoding is less affected by global intensity shifts and localized pixel corruption compared to global appearance-based methods.
+
+For geometric transformations, LBPH shows robustness to rotation until the angle reaches around 15 degrees, beyond which accuracy slightly degrades but remains above 75\% even at 30 degrees. This indicates that while LBPH does not have explicit geometric invariance, its local encoding provides some tolerance to moderate misalignment.
+ 
+Random cropping has the most significant impact on LBPH, on both datasets, as it can remove critical facial regions and disrupt the spatial structure of the histograms. This transformation achieves the single most severe degradation for LBPH, making it a key failure mode to consider in practical applications.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{../../figures/LBPH_robustness.png}
+    \caption{Impact of transformations on the accuracy of LBPH.}
+    \label{fig:lbph_robustness}
+\end{figure}
+
+\subsection{Deep Learning}
+
+We additionally evaluate a simple convolutional neural network as a deep learning baseline. The model (\texttt{TinyCNN}) consists of two convolutional layers followed by max-pooling, adaptive average pooling, and two fully connected layers. It operates on grayscale images and is trained from scratch using cross-entropy loss and the Adam optimizer, without data augmentation or pretraining.
+
+Figure~\ref{fig:dl_orl} and Figure~\ref{fig:dl_yale} report recognition accuracy as a function of the number of training images per subject on the ORL and Yale datasets.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.85\linewidth]{../../figures/GlobalComp_ORL_Deep.png}
+    \caption{Recognition accuracy on the ORL dataset as a function of the number of training images per subject.}
+    \label{fig:dl_orl}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.85\linewidth]{../../figures/GlobalComp_Yale_Deep.png}
+    \caption{Recognition accuracy on the Yale dataset as a function of the number of training images per subject.}
+    \label{fig:dl_yale}
+\end{figure}
+
+\paragraph{Results.}
+On ORL, the deep learning model improves as the number of training images increases and reaches reasonable performance for larger training sets, but remains inferior to LBPH and Eigenfaces in the low-data regime. We hypothesize that this behavior is due to overfitting, as ORL exhibits limited variability and therefore does not reflect realistic generalization performance.
+
+On Yale, performance remains significantly lower across all training regimes and exhibits high variance. This confirms our hypothesis regarding the limitations observed on ORL: deep learning models require substantially larger amounts of data to generalize effectively and are not well suited to the present task.
+
+\paragraph{Discussion.}
+Overall, these results highlight the strong data dependency of deep learning approaches. While convolutional models have high representational capacity, they require larger datasets or additional regularization strategies to outperform classical methods in small-sample face recognition settings.
+
+\section{Conclusions}
+
+In this study, we presented a comprehensive comparative evaluation of three classical face recognition methods, namely Eigenfaces, Fisherfaces, and Local Binary Pattern Histograms (LBPH), alongside a simple deep learning baseline. By testing these algorithms on the ORL and Yale datasets, we assessed their robustness to real-world degradations and their dependency on training data volume.
+
+Our findings demonstrate a clear divide between global and local appearance models. Global methods, such as Eigenfaces, are highly sensitive to geometric perturbations (like rotations and cropping) and struggle with illumination changes. While Fisherfaces mitigate some of these photometric issues by maximizing class separability, our experiments revealed that its stability is heavily dependent on controlling the PCA dimension. Conversely, the local texture-based LBPH method consistently outperformed the global approaches. It proved highly resilient in low-data scenarios and under significant illumination variations, though it remains vulnerable to severe spatial cropping and heavy blurring.
+
+Finally, the evaluation of our CNN baseline underscored the limitations of deep learning in small-sample face recognition tasks. Trained from scratch on limited data, the network suffered from severe overfitting and failed to generalize effectively. Ultimately, this project highlights that while deep learning dominates large-scale vision tasks, classical methods still hold significant value in constrained settings, and that understanding their failure modes is crucial for designing robust face recognition systems.
+
+{\small
+\bibliographystyle{ieee}
+\bibliography{egbib}
+}
+
+
+\end{document}

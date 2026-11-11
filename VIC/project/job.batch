@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --job-name=yale
+#SBATCH --output=yale.out
+#SBATCH --error=yale.out
+#SBATCH --partition=prod10
+#SBATCH --gres=gpu:1g.10gb:1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+
+
+
+uv run scripts/generate_global_graphs.py
+
+

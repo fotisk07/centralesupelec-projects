@@ -1,0 +1,6 @@
+data/
+!conf/data
+.venv
+__pycache__
+outputs
+multirun

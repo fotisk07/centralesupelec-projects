@@ -1,0 +1,21 @@
+config_metadata: 'Saving time : Sun Apr  2 12:03:04 2023 (1680429784.1471624) ; Regime : auto-save'
+experiment_logs: logs/baseline_train
+experiment_purpose: Train test
+mode: train
+device: cpu
+tracker_config:
+  type:
+  - basic
+csv_path: C:\Users\Fotis\Documents\Automatants\InterCentrales 2023\data\test_data.csv
+batch_size: 20
+number_of_batches: -1
+shuffle_data: true
+num_workers: 4
+layers_channels:
+- 16
+- 16
+weights_path: null
+learning_rate: 0.001
+number_of_epochs: 10
+save_weights_under: ''
+save_infers_under: ''

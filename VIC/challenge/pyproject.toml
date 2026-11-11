@@ -1,0 +1,40 @@
+[project]
+name = "challenge"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Fotis", email = "fotiskapotos@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.2.6",
+    "opencv-python>=4.13.0.90",
+    "pillow>=12.1.0",
+    "pyyaml>=6.0.3",
+    "scikit-image>=0.25.2",
+    "scikit-learn>=1.7.2",
+    "seaborn>=0.13.2",
+    "torch>=2.10.0",
+    "torchvision>=0.25.0",
+    "tqdm>=4.67.1",
+    "xgboost>=3.2.0",
+]
+
+[project.scripts]
+challenge = "challenge:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+]
+
+[tool.ruff]
+ignore=["N806","D202","D205","UP007","D103","ERA001","N803","D100","D101","ANN204","FBT001","FBT002","D105","PTH123","D107","COM812","D102","RET504","T201","B905","PLW2901","D401","TRY003","EM101"]
+line-length = 88
+indent-width = 4
