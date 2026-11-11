@@ -2,8 +2,9 @@
 
 Coursework, assignments, challenges, and projects from CentraleSupélec.
 
-This repository is private because some of the consolidated source repositories
-were private. No original repositories have been deleted by this consolidation.
+The owner approved publishing this consolidated repository, including coursework
+from previously private sources. The nine original GitHub repositories were deleted
+after verifying their final source files were preserved here.
 
 ## Repository map
 
