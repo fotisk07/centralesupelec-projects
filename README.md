@@ -3,7 +3,7 @@
 Coursework, assignments, challenges, and projects from CentraleSupélec.
 
 The owner approved publishing this consolidated repository, including coursework
-from previously private sources. The nine original GitHub repositories were deleted
+from previously private sources. The original GitHub repositories were deleted
 after verifying their final source files were preserved here.
 
 ## Repository map
@@ -19,6 +19,9 @@ after verifying their final source files were preserved here.
 | `EI-ST5/` | Wave equation with fractal boundary conditions |
 | `InterCentrales-2023/` | Leaf Nothing Behind competition |
 | `Machine-Learning-Challenge/` | Beacon Biosignals sleep staging challenge |
+| `Automathon/` | Superposed MNIST competition solution |
+| `CentraleAnalytica/` | Tweet sentiment analysis from Coding Weeks |
+| `Liver-Cancer-Diagnosis/` | Liver cancer classification project |
 
 ## Running projects
 
